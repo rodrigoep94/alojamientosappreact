@@ -40,3 +40,9 @@ body {
     border-color:#212529;
     color:#212529 !important;
   }
+  .required{
+      color:#dc3545;
+  }
+  .has-error{
+    border-color:#dc3545 !important;
+  }

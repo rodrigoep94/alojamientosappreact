@@ -13,11 +13,6 @@ class AltaAlojamiento extends Component {
   state = {
     ...this.formDefaults
   };
-
-  model = {
-    nombre: '',
-    descripcion: ''
-  }
   
   onChange = (e) => {
     const state = {
@@ -42,7 +37,6 @@ class AltaAlojamiento extends Component {
   }
 
   formIsValid = () => {
-    debugger;
     const nombre = { ...this.state.nombre };
     const descripcion = { ...this.state.descripcion };
     let isGood = true;
@@ -57,6 +51,13 @@ class AltaAlojamiento extends Component {
       descripcion.isValid = false;
       descripcion.message = 'La descripción es requerida';
       isGood = false;
+    }
+
+    if (!isGood){
+      this.setState({
+        descripcion,
+        nombre
+      })
     }
 
     return isGood;
@@ -90,52 +91,53 @@ class AltaAlojamiento extends Component {
   render() {
     const { nombre, descripcion } = this.state;
 
-    const nombreGroupClass = classNames('form-group',
+    const nombreGroupClass = classNames('form-control',
       { 'has-error': !nombre.isValid }
     );
 
-    const descripcionGroupClass = classNames('form-group',
+    const descripcionGroupClass = classNames('form-control',
       { 'has-error': !descripcion.isValid }
     );
     return (
       <div>
-      <span>{nombre.message}</span>
             <form className="form-signin" onSubmit={this.onSubmit} >
               <h4>Alta de alojamiento</h4>
 
-              <div class="form-group row col-md-12" className={nombreGroupClass}>
-                  <label class="col-sm-2 col-form-label">Nombre</label>
-                  <div class="col-sm-6" >
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Nombre <span className="required">*</span></label>
+                  <div className="col-sm-6" >
                     <input
                       type="text"
                       name="nombre"
                       className="form-control"
+                      className={nombreGroupClass}
                       placeholder="Nombre"
                       value={nombre.value}
                       onChange={this.onChange}
                       autoFocus
                     />
-                    <span className="help-block">{nombre.message}</span>
+                    <span className="required">{nombre.message}</span>
                   </div>
               </div>
 
-              <div class="form-group row col-md-12" className={descripcionGroupClass}>
-                  <label class="col-sm-2 col-form-label">Descripción</label>
-                  <div class="col-sm-6" >
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Descripción <span className="required">*</span></label>
+                  <div className="col-sm-6" >
                     <input
                       type="text"
                       name="descripcion"
                       className="form-control"
+                      className={descripcionGroupClass}
                       placeholder="Descripción"
                       value={descripcion.value}
                       onChange={this.onChange}
                     />
-                    <span className="help-block">{descripcion.message}</span>
+                    <span className="required">{descripcion.message}</span>
                   </div>
               </div>
 
-              <div class="form-group row col-md-12">
-                  <div class="col-sm-1">
+              <div className="form-group row col-md-12">
+                  <div className="col-sm-1">
                     <button
                       className="btn btn-lg btn-primary btn-block"
                       type="submit"
