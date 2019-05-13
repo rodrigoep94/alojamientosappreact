@@ -46,3 +46,8 @@ body {
   .has-error{
     border-color:#dc3545 !important;
   }
+  .clickeable-icon{
+    color:red;
+    cursor: pointer;
+    text-align: center;
+  }

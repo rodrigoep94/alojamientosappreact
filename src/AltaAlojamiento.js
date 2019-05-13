@@ -1,13 +1,33 @@
 import React, { Component } from "react";
 import classNames from 'classnames';
-import validator from 'validator';
+import Select from 'react-select';
+import Rating from 'react-rating';
  
+const tiposAlojamiento = [
+  { value: 'HOTEL', label: 'Hotel' },
+  { value: 'POSADA', label: 'Posada' },
+  { value: 'CABANA', label: 'Cabaña' },
+  { value: 'OTRO', label: 'Otro' }
+];
 
 class AltaAlojamiento extends Component {
 
+  constructor(props){
+    super(props);
+    this.onSubmit = this.onSubmit.bind(this);
+    this.onChange = this.onChange.bind(this);
+    this.onChangeRating = this.onChangeRating.bind(this);
+    this.onChangeTipoAlojamiento = this.onChangeTipoAlojamiento.bind(this);
+  }
+
   formDefaults = {
     nombre: { value: '', isValid: true, message: '' },
-    descripcion: { value:'', isValid: true, message: '' }
+    descripcion: { value:'', isValid: true, message: '' },
+    tipoAlojamiento: { value:'', isValid: true, message: '' },
+    categoria: { value:'', isValid: true, message: '' },
+    provincia: { value:'', isValid: true, message: '' },
+    localidad: { value:'', isValid: true, message: '' },
+    direccion: { value:'', isValid: true, message: '' }
   }
 
   state = {
@@ -15,6 +35,7 @@ class AltaAlojamiento extends Component {
   };
   
   onChange = (e) => {
+    debugger;
     const state = {
       ...this.state,
       [e.target.name]: {
@@ -39,6 +60,8 @@ class AltaAlojamiento extends Component {
   formIsValid = () => {
     const nombre = { ...this.state.nombre };
     const descripcion = { ...this.state.descripcion };
+    const tipoAlojamiento = { ...this.state.tipoAlojamiento };
+    const categoria = { ...this.state.categoria };
     let isGood = true;
 
     if (!nombre.value != ''){
@@ -53,27 +76,47 @@ class AltaAlojamiento extends Component {
       isGood = false;
     }
 
+    if (!tipoAlojamiento.value != ''){
+      tipoAlojamiento.isValid = false;
+      tipoAlojamiento.message = 'El tipo de alojamiento es requerido';
+      isGood = false;
+    }
+    
+    if (!categoria.value != ''){
+      categoria.isValid = false;
+      categoria.message = 'La categoría es requerida';
+      isGood = false;
+    }
+
     if (!isGood){
       this.setState({
         descripcion,
-        nombre
+        nombre,
+        tipoAlojamiento,
+        categoria
       })
     }
 
     return isGood;
   }
 
+  onChangeRating(v){
+    var categoriaState = this.state.categoria;
+    categoriaState.value = v;
+    this.setState({categoriaState});
+  }
+
+  onChangeTipoAlojamiento(v){
+    var alojamientoState = this.state.tipoAlojamiento;
+    alojamientoState.value = v.value;
+    this.setState({alojamientoState});
+    console.log(this.state);
+  }
+
   resetValidationStates = () => {
     // make a copy of everything in state
     const state = JSON.parse(JSON.stringify(this.state));
-
-    /*
-    loop through each item in state and if it's safe to assume that only
-    form values have an 'isValid' property, we can use that to reset their
-    validation states and keep their existing value property. This process
-    makes it easy to set all validation states on form inputs in case the number
-    of fields on our form grows in the future.
-    */
+    
     Object.keys(state).map(key => {
       if (state[key].hasOwnProperty('isValid')) {
         state[key].isValid = true;
@@ -89,7 +132,7 @@ class AltaAlojamiento extends Component {
   }
 
   render() {
-    const { nombre, descripcion } = this.state;
+    const { nombre, descripcion, tipoAlojamiento, categoria, provincia, localidad, direccion } = this.state;
 
     const nombreGroupClass = classNames('form-control',
       { 'has-error': !nombre.isValid }
@@ -98,6 +141,15 @@ class AltaAlojamiento extends Component {
     const descripcionGroupClass = classNames('form-control',
       { 'has-error': !descripcion.isValid }
     );
+
+    const tipoAlojamientoGroupClass = classNames('',
+      { 'has-error': !tipoAlojamiento.isValid }
+    );
+
+    const categoriaGroupClass = classNames('',
+      { 'has-error': !categoria.isValid }
+    );
+
     return (
       <div>
             <form className="form-signin" onSubmit={this.onSubmit} >
@@ -133,6 +185,32 @@ class AltaAlojamiento extends Component {
                       onChange={this.onChange}
                     />
                     <span className="required">{descripcion.message}</span>
+                  </div>
+              </div>
+
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Tipo de Alojamiento <span className="required">*</span></label>
+                  <div className="col-sm-6" >
+                    <Select options={tiposAlojamiento}
+                      className={tipoAlojamientoGroupClass}
+                      name="tipoAlojamiento"
+                      id="tipoAlojamiento"
+                      placeholder="Tipo de Alojamiento"
+                      onChange={this.onChangeTipoAlojamiento} />
+                    <span className="required">{tipoAlojamiento.message}</span>
+                  </div>
+              </div>
+
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Categoría <span className="required">*</span></label>
+                  <div className="col-sm-6" >
+                    <Rating
+                      name = "categoria"
+                      initialRating={categoria.value}
+                      className = {categoriaGroupClass}
+                      onChange={this.onChangeRating}
+                    />
+                    <span className="required">{categoria.message}</span>
                   </div>
               </div>
 
