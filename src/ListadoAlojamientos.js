@@ -11,7 +11,7 @@ class ListadoAlojamientos extends Component {
   deleteAlojamieto(idAlojamiento){
     if (window.confirm("¿Está seguro que quiere eliminar el alojamiento?")){
       axios
-        .put("http://localhost:9090/alojamiento/delete/" + idAlojamiento.toString())
+        .put("https://alojapp-backend.herokuapp.com/alojamiento/delete/" + idAlojamiento.toString())
         .then(response => {
           this.getAlojamientos();
         })
