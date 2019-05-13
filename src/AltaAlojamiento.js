@@ -214,6 +214,39 @@ class AltaAlojamiento extends Component {
                   </div>
               </div>
 
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Provincia <span className="required">*</span></label>
+                  <div className="col-sm-6" >
+                    <Select/>
+                    <span className="required">{categoria.message}</span>
+                  </div>
+              </div>
+
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Localidad <span className="required">*</span></label>
+                  <div className="col-sm-6" >
+                    <Select/>
+                    <span className="required">{categoria.message}</span>
+                  </div>
+              </div>
+
+              <div className="form-group row col-md-12" >
+                  <label className="col-sm-2 col-form-label">Direccion <span className="required">*</span></label>
+                  <div className="col-sm-6" >
+                    <input
+                      type="text"
+                      name="nombre"
+                      className="form-control"
+                      className={nombreGroupClass}
+                      placeholder="Dirección"
+                      value={nombre.value}
+                      onChange={this.onChange}
+                      autoFocus
+                    />
+                    <span className="required">{categoria.message}</span>
+                  </div>
+              </div>
+
               <div className="form-group row col-md-12">
                   <div className="col-sm-1">
                     <button
