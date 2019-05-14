@@ -1,7 +1,9 @@
 import React, { Component } from "react";
+import { Redirect } from 'react-router-dom';
 import classNames from 'classnames';
 import Select from 'react-select';
 import Rating from 'react-rating';
+import axios from 'axios';
  
 const tiposAlojamiento = [
   { value: 'HOTEL', label: 'Hotel' },
@@ -11,6 +13,32 @@ const tiposAlojamiento = [
 ];
 
 class AltaAlojamiento extends Component {
+  getProvincias(){
+    return axios.get('https://apis.datos.gob.ar/georef/api/provincias').then(function (response) {
+      return response.data;
+   });
+  }
+
+  getLocalidades(idProvincia){
+    return axios.get('https://apis.datos.gob.ar/georef/api/municipios?provincia=' + idProvincia.toString() + '&campos=id,nombre&max=100').then(function (response) {
+      return response.data;
+   });
+  }
+
+  saveAlojamiento(alojamiento){
+    return axios.post('https://alojapp-backend.herokuapp.com/alojamiento/create', alojamiento).then(function(response){
+      return response.data;
+    })
+  }
+
+  componentDidMount() {
+    this.getProvincias()
+        .then(res => {  
+            this.setState({
+                provincias: res.provincias.sort((a, b) => a.nombre.localeCompare(b.nombre))
+            })
+        })
+   }
 
   constructor(props){
     super(props);
@@ -18,6 +46,8 @@ class AltaAlojamiento extends Component {
     this.onChange = this.onChange.bind(this);
     this.onChangeRating = this.onChangeRating.bind(this);
     this.onChangeTipoAlojamiento = this.onChangeTipoAlojamiento.bind(this);
+    this.onChangeProvincia = this.onChangeProvincia.bind(this);
+    this.onChangeLocalidad = this.onChangeLocalidad.bind(this);
   }
 
   formDefaults = {
@@ -35,7 +65,6 @@ class AltaAlojamiento extends Component {
   };
   
   onChange = (e) => {
-    debugger;
     const state = {
       ...this.state,
       [e.target.name]: {
@@ -48,12 +77,29 @@ class AltaAlojamiento extends Component {
   }
 
   onSubmit = (e) => {
+    console.log(this.state.provincia);
     e.preventDefault();
     // reset states before the validation procedure is run.
     this.resetValidationStates();
-    // run the validation, and if it's good move on.
     if (this.formIsValid()) {
-      alert("OK!");
+      var alojamiento = this.getAlojamientoFromState();
+      this.saveAlojamiento(alojamiento).then(res => {
+        this.setState({toList:true});
+      })
+    }
+  }
+
+  getAlojamientoFromState(){
+    return {
+      nombre: this.state.nombre.value,
+      descripcion: this.state.descripcion.value,
+      tipoAlojamiento: this.state.tipoAlojamiento.value,
+      categoria: this.state.categoria.value,
+      ubicacion: {
+        provincia: this.state.provincia.value,
+        localidad: this.state.localidad.value,
+        direccion: this.state.direccion.value
+      }
     }
   }
 
@@ -62,6 +108,9 @@ class AltaAlojamiento extends Component {
     const descripcion = { ...this.state.descripcion };
     const tipoAlojamiento = { ...this.state.tipoAlojamiento };
     const categoria = { ...this.state.categoria };
+    const provincia = { ...this.state.provincia };
+    const localidad = { ...this.state.localidad };
+    const direccion = { ...this.state.direccion };
     let isGood = true;
 
     if (!nombre.value != ''){
@@ -87,13 +136,34 @@ class AltaAlojamiento extends Component {
       categoria.message = 'La categoría es requerida';
       isGood = false;
     }
+    
+    if (!provincia.value != ''){
+      provincia.isValid = false;
+      provincia.message = 'La provincia es requerida';
+      isGood = false;
+    }
+    
+    if (!localidad.value != ''){
+      localidad.isValid = false;
+      localidad.message = 'La localidad es requerida';
+      isGood = false;
+    }
+    
+    if (!direccion.value != ''){
+      direccion.isValid = false;
+      direccion.message = 'La direccion es requerida';
+      isGood = false;
+    }
 
     if (!isGood){
       this.setState({
         descripcion,
         nombre,
         tipoAlojamiento,
-        categoria
+        categoria,
+        provincia,
+        localidad,
+        direccion
       })
     }
 
@@ -110,7 +180,24 @@ class AltaAlojamiento extends Component {
     var alojamientoState = this.state.tipoAlojamiento;
     alojamientoState.value = v.value;
     this.setState({alojamientoState});
-    console.log(this.state);
+  }
+
+  onChangeProvincia(v){
+    var provinciaState = this.state.provincia;
+    provinciaState.value = v.nombre;
+    this.setState({provinciaState});
+    this.getLocalidades(v.id)
+    .then(res => {  
+        this.setState({
+            localidades: res.municipios.sort((a, b) => a.nombre.localeCompare(b.nombre))
+        })
+    });
+  }
+
+  onChangeLocalidad(v){
+    var localidadState = this.state.localidad;
+    localidadState.value = v.nombre;
+    this.setState({localidadState});
   }
 
   resetValidationStates = () => {
@@ -132,7 +219,7 @@ class AltaAlojamiento extends Component {
   }
 
   render() {
-    const { nombre, descripcion, tipoAlojamiento, categoria, provincia, localidad, direccion } = this.state;
+    const { nombre, descripcion, tipoAlojamiento, categoria, provincia, localidad, direccion, provincias, localidades } = this.state;
 
     const nombreGroupClass = classNames('form-control',
       { 'has-error': !nombre.isValid }
@@ -149,6 +236,15 @@ class AltaAlojamiento extends Component {
     const categoriaGroupClass = classNames('',
       { 'has-error': !categoria.isValid }
     );
+
+    const direccionGroupClass = classNames('form-control',
+      { 'has-error': !direccion.isValid }
+    );
+
+    
+    if (this.state.toList === true) {
+      return <Redirect to='/' />
+    }
 
     return (
       <div>
@@ -193,8 +289,6 @@ class AltaAlojamiento extends Component {
                   <div className="col-sm-6" >
                     <Select options={tiposAlojamiento}
                       className={tipoAlojamientoGroupClass}
-                      name="tipoAlojamiento"
-                      id="tipoAlojamiento"
                       placeholder="Tipo de Alojamiento"
                       onChange={this.onChangeTipoAlojamiento} />
                     <span className="required">{tipoAlojamiento.message}</span>
@@ -210,6 +304,7 @@ class AltaAlojamiento extends Component {
                       className = {categoriaGroupClass}
                       onChange={this.onChangeRating}
                     />
+                    <br></br>
                     <span className="required">{categoria.message}</span>
                   </div>
               </div>
@@ -217,16 +312,26 @@ class AltaAlojamiento extends Component {
               <div className="form-group row col-md-12" >
                   <label className="col-sm-2 col-form-label">Provincia <span className="required">*</span></label>
                   <div className="col-sm-6" >
-                    <Select/>
-                    <span className="required">{categoria.message}</span>
+                    <Select
+                      options={provincias}
+                      getOptionLabel={(option) => option['nombre']}
+                      getOptionValue={(option) => option['id']}
+                      onChange={this.onChangeProvincia}
+                      placeholder="Provincia"/>
+                    <span className="required">{provincia.message}</span>
                   </div>
               </div>
 
               <div className="form-group row col-md-12" >
                   <label className="col-sm-2 col-form-label">Localidad <span className="required">*</span></label>
                   <div className="col-sm-6" >
-                    <Select/>
-                    <span className="required">{categoria.message}</span>
+                    <Select
+                      options={localidades}
+                      getOptionLabel={(option) => option['nombre']}
+                      getOptionValue={(option) => option['id']}
+                      onChange={this.onChangeLocalidad}
+                      placeholder="Localidad"/>
+                    <span className="required">{localidad.message}</span>
                   </div>
               </div>
 
@@ -235,15 +340,15 @@ class AltaAlojamiento extends Component {
                   <div className="col-sm-6" >
                     <input
                       type="text"
-                      name="nombre"
+                      name="direccion"
                       className="form-control"
-                      className={nombreGroupClass}
+                      className={direccionGroupClass}
                       placeholder="Dirección"
-                      value={nombre.value}
+                      value={direccion.value}
                       onChange={this.onChange}
                       autoFocus
                     />
-                    <span className="required">{categoria.message}</span>
+                    <span className="required">{direccion.message}</span>
                   </div>
               </div>
 
